@@ -1,0 +1,98 @@
+import { v4 as uuidv4 } from 'uuid';
+import { Server, StableBTreeMap, ic, Result } from 'azle'; 
+import { createHmac } from 'crypto';
+import { Admin } from 'mongodb'; 
+import {application} from 'express'
+ const users = {
+  Admin: { username: 'admin', passwordHash: 'hashed_password' },
+};
+const bcrypt = require('bcrypt');
+async function verifyCredentials(username, password) {
+    const user = await (username);
+    if (!user) {
+      throw new Error('Invalid username');
+    }
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    return isValid;
+  }
+function hashPassword(password: string) {
+}
+class Patients {
+    id:string;
+    age:string;
+    gender:string;
+    status:string;
+    residence:string;
+    phoneNumber:string;
+    attachmentURL:string;
+}
+enum patientsStatus {
+  admitted,
+  discharged,
+  pending,
+}
+function isValidToken(token: string): boolean | Error {
+    if (token === 'valid_token') {
+      return true;
+    } else {
+      return new Error('Invalid token');
+    }
+  }
+application.use((req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).send('Unauthorized');
+    }
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).send('Unauthorized');
+    }
+    next();
+  });
+  const express = require('express');
+const patientsStorage = new Map(); 
+const app = express();
+app.use(express.json());
+app.post('/patients', async (req, res) => {
+  try {
+    const newPatient = {
+      id: uuidv4(),
+      ...req.body,
+    };
+    patientsStorage.set(newPatient.id, newPatient);
+    res.json({ message: 'Patient created successfully', patientId: newPatient.id });
+  } catch (error) {
+    console.error('Error creating patient:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+function updatePatient(patientId, updatedData) {
+  try {
+    const existingPatient = patientsStorage.get(patientId);
+    if (!existingPatient) {
+      return false; 
+    }
+    const updatedPatient = { ...existingPatient, ...updatedData };
+    patientsStorage.set(patientId, updatedPatient);
+    return true;
+  } catch (error) {
+    console.error('Error updating patient:', error);
+    return false;
+  }
+}
+  application.put('/patients/:id', async (req, res) => {
+    try {
+      const patientId = req.params.id;
+      const { id, ...updatedPatient } = req.body; 
+      const updateResult = updatePatient(patientId, updatedPatient);
+      if (updateResult) {
+        res.json({ message: 'Patient updated successfully' });
+      } else {
+        res.status(404).send('Patient not found'); 
+      }
+    } catch (error) {
+      console.error('Error updating patient:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+  application.listen(3000, () => console.log('Server listening on port 3000'));
